@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1">
+    <title></title>
+    <link rel="stylesheet" href="style.css"/>
+    <link href='https://fonts.googleapis.com/css?family=Roboto:400,400italic,700&subset=latin,cyrillic' rel='stylesheet' type='text/css'>
+</head>
+<body onload="init()">
+    <div id="logo">
+        <img id="acorn-logo" src="images/logo-vector.svg" alt=""/>
+    </div>
+
+    <section id="percentage">
+        <div id="percent"><span id="percent-num">84</span><span id="percent-span" class="blue">%</span></div>
+        <p id="soon-online" class="text-center font-ristretto">СКОРО ОТНОВО ЩЕ БЪДЕМ <span class="blue">ONLINE</span></p>
+    </section>
+
+    <section id="subscribe">
+        <p id="new-about-us" class="font-ristretto">Какво ново около нас?</p>
+        <p id="email-us" class="font-ristretto">Изпрати имейл, за да се информираш.</p>
+        <!--<form>
+            <input type="text" placeholder="вашият e-mail"/>
+            <button>ИЗПРАТИ</button>
+        </form>-->
+        <form>
+            <div class="wrapper">
+                <input type="text" placeholder="вашият e-mail"/>
+                <input type="submit" name="submit" value="ИЗПРАТИ">
+            </div>
+        </form>
+    </section>
+
+    <footer>
+        <div>
+            <img class="footer-imgs" src="images/phone.svg" alt=""/>
+            <span>0898 620 260</span>
+        </div>
+        <div>
+            <img class="footer-imgs" src="images/web.svg" alt=""/>
+            <span>www.acorn.bg</span>
+        </div>
+        <div>
+            <img class="footer-imgs" src="images/mail.svg" alt=""/>
+            <span>contact@acorn.bg</span>
+            <div></div>
+        </div>
+    </footer>
+
+    <div id="line-bottom"></div>
+</div>
+
+    <script type="text/javascript" src="js/ThreeCanvas.js"></script>
+    <script type="text/javascript" src="js/Snow.js"></script>
+
+    <script>
+        var SCREEN_WIDTH = window.innerWidth;
+        var SCREEN_HEIGHT = window.innerHeight;
+
+        var container;
+
+        var particle;
+
+        var camera;
+        var scene;
+        var renderer;
+
+        var mouseX = 0;
+        var mouseY = 0;
+
+        var windowHalfX = window.innerWidth / 2;
+        var windowHalfY = window.innerHeight / 2;
+
+        var particles = [];
+        var particleImage = new Image();//THREE.ImageUtils.loadTexture( "img/ParticleSmoke.png" );
+        particleImage.src = 'img/ParticleSmoke.png';
+
+        var canvasWrapperId = "snow-canvas";
+        var interval;
+
+
+
+        function init() {
+            container = document.createElement('div');
+            container.id = canvasWrapperId;
+            document.body.appendChild(container);
+
+            camera = new THREE.PerspectiveCamera( 75, SCREEN_WIDTH / SCREEN_HEIGHT, 1, 10000 );
+            camera.position.z = 1000;
+
+            scene = new THREE.Scene();
+            scene.add(camera);
+
+            renderer = new THREE.CanvasRenderer();
+            renderer.setSize(SCREEN_WIDTH, SCREEN_HEIGHT);
+            var material = new THREE.ParticleBasicMaterial( { map: new THREE.Texture(particleImage) } );
+
+            for (var i = 0; i < 500; i++) {
+
+                particle = new Particle3D( material);
+                particle.position.x = Math.random() * 6000 - 1000;
+                particle.position.y = Math.random() * 2000 - 1000;
+                particle.position.z = Math.random() * 2000 - 1000;
+                particle.scale.x = particle.scale.y =  1;
+                scene.add( particle );
+
+                particles.push(particle);
+            }
+
+            container.appendChild( renderer.domElement );
+
+
+            document.addEventListener( 'mousemove', onDocumentMouseMove, false );
+            document.addEventListener( 'touchstart', onDocumentTouchStart, false );
+            document.addEventListener( 'touchmove', onDocumentTouchMove, false );
+
+            interval = setInterval( loop, 1000 / 60 );
+
+        }
+
+        function onDocumentMouseMove( event ) {
+
+            mouseX = event.clientX - windowHalfX;
+            mouseY = event.clientY - windowHalfY;
+        }
+
+        function onDocumentTouchStart( event ) {
+
+            if ( event.touches.length == 1 ) {
+
+                event.preventDefault();
+
+                mouseX = event.touches[ 0 ].pageX - windowHalfX;
+                mouseY = event.touches[ 0 ].pageY - windowHalfY;
+            }
+        }
+
+        function onDocumentTouchMove( event ) {
+
+            if ( event.touches.length == 1 ) {
+
+                event.preventDefault();
+
+                mouseX = event.touches[ 0 ].pageX - windowHalfX;
+                mouseY = event.touches[ 0 ].pageY - windowHalfY;
+            }
+        }
+
+        //
+
+        function loop() {
+
+            for(var i = 0; i< particles.length; i++) {
+
+                var particle = particles[i];
+                particle.updatePhysics();
+
+                with(particle.position) {
+                    if(y<-1000) y+=2000;
+                    if(x>1000) x-=2000;
+                    else if(x<-1000) x+=2000;
+                    if(z>1000) z-=2000;
+                    else if(z<-1000) z+=2000;
+                }
+            }
+
+            camera.position.x += ( mouseX - camera.position.x ) * 0.05;
+            camera.position.y += ( - mouseY - camera.position.y ) * 0.05;
+            camera.lookAt(scene.position);
+
+            renderer.render( scene, camera );
+        }
+
+        window.addEventListener('resize', resetSnow, false);
+
+        function resetSnow() {
+            clearInterval(interval);
+            console.log("window resised");
+            document.getElementById(canvasWrapperId).remove();
+
+            document.removeEventListener( 'mousemove', onDocumentMouseMove, false );
+            document.removeEventListener( 'touchstart', onDocumentTouchStart, false );
+            document.removeEventListener( 'touchmove', onDocumentTouchMove, false );
+
+            SCREEN_WIDTH = window.innerWidth;
+            SCREEN_HEIGHT = window.innerHeight;
+            windowHalfX =SCREEN_WIDTH / 2;
+            windowHalfY = SCREEN_HEIGHT / 2;
+
+            init();
+        }
+
+        function animatePercentages(numToAnimate) {
+            var currentPersent = 0,
+                percentEl = document.getElementById("percent-num");
+
+            var percentInterval = setInterval(function () {
+                if(currentPersent > numToAnimate) {
+                    clearInterval(percentInterval);
+                } else {
+                    percentEl.textContent = currentPersent;
+                    currentPersent++;
+                }
+            }, 40);
+        }
+
+        animatePercentages(parseInt(document.getElementById("percent-num").textContent));
+
+    </script>
+</body>
+</html>
